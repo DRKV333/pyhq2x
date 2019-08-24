@@ -27,9 +27,10 @@ for i in range(9):
 Y_THRESHHOLD = 48
 U_THRESHHOLD = 7
 V_THRESHHOLD = 6
+A_THRESHHOLD = 80
 
 rgb_yuv_cache = {}  # memoization
-def rgb_to_yuv(rgb):
+def rgb_to_yuv(rgba):
     """Takes a tuple of (r, g, b) and returns a tuple (y, u, v).  Both must be
     24-bit color!
 
@@ -37,17 +38,18 @@ def rgb_to_yuv(rgb):
     match any other algorithm I can find, but whatever.
     """
 
-    if rgb in rgb_yuv_cache:
-        return rgb_yuv_cache[rgb]
+    r, g, b, a = rgba
+    rgb = (r, g, b)
 
-    r, g, b = rgb
+    if rgb in rgb_yuv_cache:
+        return rgb_yuv_cache[rgb] + (a,)
 
     y = (r + g + b) >> 2
     u = 128 + ((r - b) >> 2)
     v = 128 + ((-r + g * 2 - b) >> 3)
 
     rgb_yuv_cache[rgb] = y, u, v
-    return y, u, v
+    return y, u, v, a
 
 
 def yuv_equal(a, b):
@@ -55,14 +57,17 @@ def yuv_equal(a, b):
     False otherwise.  "Equal-ish" is defined arbitrarily as tolerating small
     differences in the components of the two colors.
     """
-    ay, au, av = a
-    by, bu, bv = b
+    ay, au, av, aa = a
+    by, bu, bv, ba = b
     if abs(ay - by) > Y_THRESHHOLD:
         return False
     if abs(au - bu) > U_THRESHHOLD:
         return False
     if abs(av - bv) > V_THRESHHOLD:
         return False
+    if abs(aa - ba) > A_THRESHHOLD:
+        return False
+
 
     return True
 
@@ -102,8 +107,8 @@ def hq2x(source):
 
     w, h = source.size
     mode = source.mode  # XXX use this for the target I guess somehow; palette?
-    source = source.convert('RGB')
-    dest = Image.new('RGB', (w * 2, h * 2))
+    source = source.convert('RGBA')
+    dest = Image.new('RGBA', (w * 2, h * 2))
 
     # These give direct pixel access via grid[x, y]
     sourcegrid = source.load()
@@ -135,7 +140,7 @@ def hq2x(source):
                 get_px(x - 1, y    ), get_px(x, y    ), get_px(x + 1, y    ),
                 get_px(x - 1, y + 1), get_px(x, y + 1), get_px(x + 1, y + 1),
             ]
-
+            
             tl, tr, bl, br = hq2x_pixel(context)
 
             destgrid[x * 2, y * 2] = tl
