@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import Image
+from PIL import Image
 
 # Constants for indicating coordinates in a pixel's context
 TOP_LEFT = 0
@@ -16,7 +16,7 @@ BOTTOM_RIGHT = 8
 # There are eight flags: the cells in the context, skipping the center
 context_flag = {}
 cur_flag = 1
-for i in xrange(9):
+for i in range(9):
     if i == CENTER:
         continue
     context_flag[i] = cur_flag
@@ -72,25 +72,25 @@ def interpolate(func, *args):
     return tuple(map(func, *args))
 
 def interp1(*args):
-    return interpolate(lambda a, b: (a * 3 + b) / 4, *args)
+    return interpolate(lambda a, b: (a * 3 + b) // 4, *args)
 
 def interp2(*args):
-    return interpolate(lambda a, b, c: (a * 2 + b + c) / 4, *args)
+    return interpolate(lambda a, b, c: (a * 2 + b + c) // 4, *args)
 
 def interp5(*args):
     return interpolate(lambda a, b: (a + b) / 2, *args)
 
 def interp6(*args):
-    return interpolate(lambda a, b, c: (a*5 + b*2 + c) / 8, *args)
+    return interpolate(lambda a, b, c: (a*5 + b*2 + c) // 8, *args)
 
 def interp7(*args):
-    return interpolate(lambda a, b, c: (a*6 + b + c) / 8, *args)
+    return interpolate(lambda a, b, c: (a*6 + b + c) // 8, *args)
 
 def interp9(*args):
-    return interpolate(lambda a, b, c: (a*2 + b*3 + c*3) / 8, *args)
+    return interpolate(lambda a, b, c: (a*2 + b*3 + c*3) // 8, *args)
 
 def interp10(*args):
-    return interpolate(lambda a, b, c: (a*14 + b + c) / 16, *args)
+    return interpolate(lambda a, b, c: (a*14 + b + c) // 16, *args)
 
 
 def hq2x(source):
@@ -125,8 +125,8 @@ def hq2x(source):
 
         return sourcegrid[x, y]
 
-    for x in xrange(w):
-        for y in xrange(h):
+    for x in range(w):
+        for y in range(h):
             # This is a flattened 3x3 grid with the current pixel in the
             # middle; if the pixel is on an edge, the row/column in the void is
             # just a copy of the edge
@@ -162,7 +162,7 @@ def hq2x_pixel(context):
     yuv_px = rgb_to_yuv(context[CENTER])
 
     pattern = 0
-    for bit in xrange(9):
+    for bit in range(9):
         if bit != CENTER and not yuv_equal(yuv_context[bit], yuv_px):
             pattern = pattern | context_flag[bit]
 
